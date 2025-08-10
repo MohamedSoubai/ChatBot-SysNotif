@@ -9,7 +9,6 @@ A Laravel 10 application to manage clients and invoices, send automated unpaid-i
 - [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
 - [Environment Configuration](#environment-configuration)
-- [Database Setup](#database-setup)
 - [Build Frontend Assets](#build-frontend-assets)
 - [Run the App](#run-the-app)
 - [Email & Scheduler](#email--scheduler)
@@ -117,57 +116,6 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 # Ensure your Google OAuth redirect URL matches exactly:
 # http://127.0.0.1:8000/auth/google/callback-url
 ```
-
----
-
-## Database Setup
-This project expects two business tables not provided by default Laravel migrations: `ClientsTest` and `FacturesTest`.
-
-Use the minimal MySQL schema below (you can adapt for other DBs). Adjust types/lengths as needed.
-
-```sql
-CREATE TABLE IF NOT EXISTS `ClientsTest` (
-  `CodeTiers`    VARCHAR(20)  NOT NULL,
-  `Intitule`     VARCHAR(255) NOT NULL,
-  `Adresse`      TEXT         NOT NULL,
-  `Telephone`    VARCHAR(20)  NOT NULL,
-  `Email`        VARCHAR(255) NOT NULL,
-  PRIMARY KEY (`CodeTiers`),
-  UNIQUE KEY `clients_email_unique` (`Email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS `FacturesTest` (
-  `idFacture`      INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `CodeTiers`      VARCHAR(20)  NOT NULL,
-  `NumeroFacture`  VARCHAR(100) NOT NULL,
-  `Service`        VARCHAR(255) NOT NULL,
-  `ModeReglement`  VARCHAR(100) NOT NULL,
-  `DateEntree`     DATE         NOT NULL,
-  `DateEcheance`   DATE         NOT NULL,
-  `DateRemise`     DATE         NULL,
-  `DateImpaye`     DATE         NULL,
-  `Reference`      VARCHAR(255) NULL,
-  `Libelle`        VARCHAR(255) NULL,
-  `Banque`         VARCHAR(255) NULL,
-  `MontantTotal`   DECIMAL(12,2) NOT NULL,
-  `Statut`         VARCHAR(50)  NOT NULL, -- Expected: 'Réglé', 'En attente', 'Impayé'
-  `Description`    TEXT         NULL,
-  PRIMARY KEY (`idFacture`),
-  UNIQUE KEY `factures_numero_unique` (`NumeroFacture`),
-  KEY `factures_codetiers_index` (`CodeTiers`),
-  CONSTRAINT `factures_clients_fk` FOREIGN KEY (`CodeTiers`) REFERENCES `ClientsTest` (`CodeTiers`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-```
-
-Optional sample data
-```sql
-INSERT INTO ClientsTest (CodeTiers, Intitule, Adresse, Telephone, Email)
-VALUES ('C001', 'Client Démo', '1 rue Demo, Paris', '+33123456789', 'client.demo@example.com');
-```
-
-Notes
-- Column names are referenced in code as shown above; keep them as-is
-- Table names are `ClientsTest` and `FacturesTest` (case-insensitive in MySQL, but keep exact names)
 
 ---
 
