@@ -1,165 +1,260 @@
-# SysNotif-SGhandi
+# ChatBotSysNotif (SysNotif-SGhandi)
 
-Welcome to the SysNotif-SGhandi project! This guide will help you set up and run the project on your computer, even if you have no coding experience.
+A Laravel 10 application to manage clients and invoices, send automated unpaid-invoice reminders by email, and provide an authenticated dashboard. Supports classic email/password auth and optional Google Sign-In.
 
 ---
 
 ## Table of Contents
+- [Features](#features)
 - [Prerequisites](#prerequisites)
-- [Setting Up the Project](#setting-up-the-project)
-- [Configuration](#configuration)
-- [Running the Project](#running-the-project)
+- [Quick Start](#quick-start)
+- [Environment Configuration](#environment-configuration)
+- [Database Setup](#database-setup)
+- [Build Frontend Assets](#build-frontend-assets)
+- [Run the App](#run-the-app)
+- [Email & Scheduler](#email--scheduler)
+- [Routes & Usage](#routes--usage)
 - [Troubleshooting](#troubleshooting)
-- [Additional Resources](#additional-resources)
+
+---
+
+## Features
+- Authentication: register/login with email & password; optional Google login (Socialite)
+- Dashboard with protected access
+- Client management (`ClientsTest`)
+- Invoice management (`FacturesTest`) with per-invoice email notification
+- Automated hourly email reminders for overdue unpaid invoices
 
 ---
 
 ## Prerequisites
-Before you begin, make sure you have the following software installed:
+Install these before continuing:
+- PHP 8.1+
+- Composer
+- Node.js 18+ with npm
+- A database (MySQL recommended). SQLite/PostgreSQL can work but examples below use MySQL
 
-1. **PHP (version 8.1 or higher)**
-   - [Download PHP](https://www.php.net/downloads.php)
-2. **Composer** (dependency manager for PHP)
-   - [Download Composer](https://getcomposer.org/download/)
-3. **Node.js and npm** (for frontend assets)
-   - [Download Node.js (includes npm)](https://nodejs.org/)
-4. **A Database** (MySQL, PostgreSQL, SQLite, or SQL Server)
-   - For beginners, [XAMPP](https://www.apachefriends.org/index.html) is an easy way to get MySQL and PHP together.
+Optional but recommended for local email testing:
+- Mailtrap (or another SMTP testing service)
 
 ---
 
-## Setting Up the Project
+## Quick Start
+1) Install dependencies
+```bash
+composer install
+npm install
+```
 
-1. **Download or Clone the Project**
-   - Download the ZIP from GitHub and extract it, or use:
-     ```
-     git clone <repository-url>
-     ```
-   - Open a terminal/command prompt and navigate to the project folder.
+2) Create and configure env file
+```bash
+copy .env.example .env   # Windows
+# cp .env.example .env   # macOS/Linux
+php artisan key:generate
+```
+Edit `.env` with your DB and mail settings (see below).
 
-2. **Install PHP Dependencies**
-   - Run:
-     ```
-     composer install
-     ```
+3) Migrate default Laravel tables
+```bash
+php artisan migrate
+```
 
-3. **Install Node.js Dependencies**
-   - Run:
-     ```
-     npm install
-     ```
+4) Create business tables (clients & invoices)
+- Run the SQL in the [Database Setup](#database-setup) section to create `ClientsTest` and `FacturesTest`.
 
-4. **Set Up Environment Variables**
-   - Copy the example environment file:
-     ```
-     copy .env.example .env
-     ```
-     (On Mac/Linux, use `cp .env.example .env`)
-
-5. **Generate Application Key**
-   - Run:
-     ```
-     php artisan key:generate
-     ```
+5) Run the app
+```bash
+npm run dev
+php artisan serve
+```
+Open http://127.0.0.1:8000
 
 ---
 
-## Configuration
+## Environment Configuration
+Update the following in your `.env`:
 
-### 1. Database Setup
-- Edit the `.env` file in the project root.
-- Set these variables to match your database:
-  ```
-  DB_CONNECTION=mysql
-  DB_HOST=127.0.0.1
-  DB_PORT=3306
-  DB_DATABASE=your_database_name
-  DB_USERNAME=your_database_user
-  DB_PASSWORD=your_database_password
-  ```
-- Create the database in your database server (e.g., MySQL Workbench, phpMyAdmin, or command line).
+Basic app
+```env
+APP_NAME="SysNotif-SGhandi"
+APP_ENV=local
+APP_KEY=base64:generated-by-key-generate
+APP_DEBUG=true
+APP_URL=http://127.0.0.1:8000
+```
 
-### 2. Mail Setup (for sending emails)
-- In the `.env` file, set up your mail provider:
-  ```
-  MAIL_MAILER=smtp
-  MAIL_HOST=smtp.example.com
-  MAIL_PORT=587
-  MAIL_USERNAME=your_email@example.com
-  MAIL_PASSWORD=your_email_password
-  MAIL_ENCRYPTION=tls
-  MAIL_FROM_ADDRESS=your_email@example.com
-  MAIL_FROM_NAME="Your Name or App Name"
-  ```
-- For testing, you can use [Mailtrap](https://mailtrap.io/) or similar services.
+Database (MySQL example)
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=your_database_name
+DB_USERNAME=your_database_user
+DB_PASSWORD=your_database_password
+```
 
-### 3. Google Login (Optional)
-- If you want to enable Google login, set these in your `.env`:
-  ```
-  GOOGLE_CLIENT_ID=your_google_client_id
-  GOOGLE_CLIENT_SECRET=your_google_client_secret
-  ```
-- [How to get Google OAuth credentials](https://developers.google.com/identity/sign-in/web/sign-in)
+Mail (SMTP example)
+```env
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.mailtrap.io
+MAIL_PORT=587
+MAIL_USERNAME=your_mail_username
+MAIL_PASSWORD=your_mail_password
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=no-reply@example.com
+MAIL_FROM_NAME="SysNotif"
+```
+
+Queues (safe default for local)
+```env
+QUEUE_CONNECTION=sync
+```
+
+Optional: Google Sign-In
+```env
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+# Ensure your Google OAuth redirect URL matches exactly:
+# http://127.0.0.1:8000/auth/google/callback-url
+```
 
 ---
 
-## Running the Project
+## Database Setup
+This project expects two business tables not provided by default Laravel migrations: `ClientsTest` and `FacturesTest`.
 
-1. **Run Database Migrations**
-   - This creates the necessary tables in your database:
-     ```
-     php artisan migrate
-     ```
+Use the minimal MySQL schema below (you can adapt for other DBs). Adjust types/lengths as needed.
 
-2. **(Optional) Seed the Database**
-   - To add sample data (if available):
-     ```
-     php artisan db:seed
-     ```
+```sql
+CREATE TABLE IF NOT EXISTS `ClientsTest` (
+  `CodeTiers`    VARCHAR(20)  NOT NULL,
+  `Intitule`     VARCHAR(255) NOT NULL,
+  `Adresse`      TEXT         NOT NULL,
+  `Telephone`    VARCHAR(20)  NOT NULL,
+  `Email`        VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`CodeTiers`),
+  UNIQUE KEY `clients_email_unique` (`Email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-3. **Build Frontend Assets**
-   - For development (auto-reloads on changes):
-     ```
-     npm run dev
-     ```
-   - For production (optimized build):
-     ```
-     npm run build
-     ```
+CREATE TABLE IF NOT EXISTS `FacturesTest` (
+  `idFacture`      INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `CodeTiers`      VARCHAR(20)  NOT NULL,
+  `NumeroFacture`  VARCHAR(100) NOT NULL,
+  `Service`        VARCHAR(255) NOT NULL,
+  `ModeReglement`  VARCHAR(100) NOT NULL,
+  `DateEntree`     DATE         NOT NULL,
+  `DateEcheance`   DATE         NOT NULL,
+  `DateRemise`     DATE         NULL,
+  `DateImpaye`     DATE         NULL,
+  `Reference`      VARCHAR(255) NULL,
+  `Libelle`        VARCHAR(255) NULL,
+  `Banque`         VARCHAR(255) NULL,
+  `MontantTotal`   DECIMAL(12,2) NOT NULL,
+  `Statut`         VARCHAR(50)  NOT NULL, -- Expected: 'Réglé', 'En attente', 'Impayé'
+  `Description`    TEXT         NULL,
+  PRIMARY KEY (`idFacture`),
+  UNIQUE KEY `factures_numero_unique` (`NumeroFacture`),
+  KEY `factures_codetiers_index` (`CodeTiers`),
+  CONSTRAINT `factures_clients_fk` FOREIGN KEY (`CodeTiers`) REFERENCES `ClientsTest` (`CodeTiers`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
 
-4. **Start the Laravel Server**
-   - Run:
-     ```
-     php artisan serve
-     ```
-   - The app will be available at [http://127.0.0.1:8000](http://127.0.0.1:8000)
+Optional sample data
+```sql
+INSERT INTO ClientsTest (CodeTiers, Intitule, Adresse, Telephone, Email)
+VALUES ('C001', 'Client Démo', '1 rue Demo, Paris', '+33123456789', 'client.demo@example.com');
+```
+
+Notes
+- Column names are referenced in code as shown above; keep them as-is
+- Table names are `ClientsTest` and `FacturesTest` (case-insensitive in MySQL, but keep exact names)
+
+---
+
+## Build Frontend Assets
+- Development (auto refresh):
+```bash
+npm run dev
+```
+- Production build:
+```bash
+npm run build
+```
+
+The app also serves static assets from `public/admin_assets/*`.
+
+---
+
+## Run the App
+```bash
+php artisan serve
+```
+Visit http://127.0.0.1:8000
+
+- Create an account at `/register`, then login at `/login`
+- Or use Google Sign-In if configured
+
+---
+
+## Email & Scheduler
+Send a single invoice notification manually
+```bash
+php artisan route:list | findstr factures
+# Find a facture id, then:
+php artisan tinker   # optional to explore
+# or trigger via browser: POST /factures/{id}/notify (from UI buttons)
+```
+
+Run overdue unpaid invoices reminder manually
+```bash
+php artisan alerts:impayes
+```
+
+Automate hourly reminders (scheduler)
+- The app schedules `alerts:impayes` hourly. To run the scheduler:
+  - Quick dev method:
+    ```bash
+    php artisan schedule:work
+    ```
+  - Production/CI: run every minute via cron (Linux/macOS):
+    ```
+    * * * * * cd /path/to/project && php artisan schedule:run >> /dev/null 2>&1
+    ```
+  - Windows: create a Task Scheduler task to run `php artisan schedule:run` every minute
+
+Email tips
+- For local, use Mailtrap or set `MAIL_MAILER=log` to log emails instead of sending
+- Queues default to `sync` in this guide; no separate worker needed locally
+
+---
+
+## Routes & Usage
+Authentication
+- GET `/register` → create user (sends welcome email)
+- GET `/login` → login form
+- GET `/logout` → logout (requires auth)
+- GET `/auth/google` → redirect to Google (optional)
+- GET `/auth/google/callback-url` → Google OAuth callback
+
+App
+- GET `/` → dashboard (requires auth)
+- Clients (requires auth):
+  - GET `/clients` (list), `/clients/create`, POST `/clients`, GET `/clients/{CodeTiers}`, etc.
+- Invoices:
+  - Resource routes under `/factures` (list, show, create, edit, delete)
+  - POST `/factures/{id}/notify` → send email for a single invoice
+- Chatbot endpoint (requires auth): POST `/chat/query`
 
 ---
 
 ## Troubleshooting
-
-- **Composer or npm not found?**
-  - Make sure they are installed and added to your system PATH.
-- **Database connection errors?**
-  - Double-check your `.env` database settings and ensure the database exists.
-- **Permission errors?**
-  - On Mac/Linux, you may need to run `chmod -R 775 storage bootstrap/cache`.
-- **Emails not sending?**
-  - Check your mail settings in `.env` and use a test service like Mailtrap.
-- **Port already in use?**
-  - Try `php artisan serve --port=8080` to use a different port.
-- **Other issues?**
-  - Try running `composer install` and `npm install` again.
-  - Check the [Laravel documentation](https://laravel.com/docs/10.x) for more help.
+- Composer/npm not found: ensure they’re installed and on PATH
+- DB errors: verify `.env` DB settings; confirm `ClientsTest` and `FacturesTest` exist
+- Email not sending: use Mailtrap or set `MAIL_MAILER=log` to inspect output
+- Port in use: `php artisan serve --port=8080`
+- Asset issues: re-run `npm install` and `npm run dev`
+- Social login: ensure Google credentials and redirect URL match exactly
 
 ---
 
-## Additional Resources
-- [Laravel Documentation](https://laravel.com/docs/10.x)
-- [Composer Documentation](https://getcomposer.org/doc/)
-- [Node.js Documentation](https://nodejs.org/en/docs/)
-- [Mailtrap (for email testing)](https://mailtrap.io/)
-
----
-
-If you have any questions or need help, feel free to open an issue on the repository!
+If you need help, open an issue or start a discussion on the repository.
