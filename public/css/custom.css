@@ -1,0 +1,110 @@
+:root {
+    --gold: #e0b144;
+    --gold-dark: #b58f30;
+    --black: #1a1a1a;
+    --dark-grey: #2a2a2a;
+    --white: #ffffff;
+}
+
+/* === SIDEBAR === */
+.sidebar-dark {
+    background-color: var(--black) !important;
+}
+
+.sidebar-dark .nav-item .nav-link {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.sidebar-dark .nav-item .nav-link:hover {
+    color: var(--gold) !important;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-dark .nav-item .nav-link.active {
+    background-color: var(--gold-dark) !important;
+    color: #fff !important;
+}
+
+.sidebar .nav-link i {
+    color: var(--gold) !important;
+}
+
+.sidebar-brand {
+    background-color: var(--black);
+    color: var(--gold);
+}
+
+.sidebar-brand-icon i {
+    color: var(--gold);
+}
+
+.sidebar .sidebar-divider {
+    border-color: rgba(255, 255, 255, .15) !important; 
+    opacity: 1 !important;
+    background-color: rgba(255, 255, 255, .15) !important;
+}
+
+
+/* === TOPBAR === */
+.navbar {
+    background-color: var(--black) !important;
+}
+
+.navbar .nav-link,
+.navbar .navbar-brand,
+.navbar .dropdown-toggle {
+    color: var(--gold) !important;
+}
+
+.navbar .nav-link:hover,
+.navbar .dropdown-toggle:hover {
+    color: var(--gold-dark) !important;
+}
+
+/* === BOUTONS === */
+.btn-gold {
+    color: var(--white);
+    background-color: var(--gold);
+    border-color: var(--gold);
+}
+
+.btn-gold:hover {
+    background-color: var(--gold-dark);
+    border-color: var(--gold-dark);
+}
+
+/* === TITRES / TEXTES === */
+.text-gold {
+    color: var(--gold) !important;
+}
+
+/* === CARTES === */
+.card {
+    border-left: 0.25rem solid var(--gold);
+}
+
+.card-header {
+    background-color: var(--dark-grey);
+    color: var(--gold);
+    border-bottom: 1px solid var(--gold);
+}
+
+/* === TABLES / DATATABLES === */
+.table thead {
+    background-color: var(--black);
+    color: var(--gold);
+}
+
+/* === SCROLLBAR (optionnel) === */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--black);
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--gold);
+    border-radius: 10px;
+}
